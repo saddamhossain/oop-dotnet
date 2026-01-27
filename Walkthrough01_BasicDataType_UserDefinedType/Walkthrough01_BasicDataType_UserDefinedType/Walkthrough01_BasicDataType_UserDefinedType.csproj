@@ -8,10 +8,19 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Update="Data\students.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    <PackageReference Include="CsvHelper" Version="33.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Data\students.csv">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+
     </None>
   </ItemGroup>
+
+
+
 
 </Project>
 

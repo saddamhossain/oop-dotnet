@@ -1,72 +1,139 @@
 namespace Walkthrough01_BasicDataType_UserDefinedType.Services;
 
-public class StudentService
+public class StudentService : IStudentService
 {
-    public List<Student> LoadFromJson(string filePath)
+    public List<Student> GetAllStudents(string filePath)
     {
+        var students = new List<Student>();
+
         if (!File.Exists(filePath))
         {
-            throw new FileNotFoundException($"File not found: {filePath}");
+            return students;
         }
 
-        var jsonContent = File.ReadAllText(filePath);
-        var students = JsonSerializer.Deserialize<List<Student>>(jsonContent);
-
-        if (students == null || students.Count == 0)
+        var config = new CsvConfiguration(CultureInfo.InvariantCulture)
         {
-            throw new InvalidOperationException("No students found in the file.");
+            HasHeaderRecord = true,
+            TrimOptions = TrimOptions.Trim,
+            MissingFieldFound = null,
+            BadDataFound = null
+        };
+
+        try
+        {
+            using var reader = new StreamReader(filePath);
+            using var csv = new CsvReader(reader, config);
+
+            csv.Context.RegisterClassMap<StudentCsvMap>();
+
+            var records = csv.GetRecords<StudentCsvDto>();
+            foreach (var record in records)
+            {
+                students.Add(MapToStudent(record));
+            }
+        }
+        catch
+        {
+            return students;
         }
 
         return students;
     }
 
-    public bool IsValidStudent(Student student)
+    public void AddStudent(string filePath, Student student)
     {
-        if (student == null) return false;
+        EnsureDirectoryExists(filePath);
 
-        if (string.IsNullOrWhiteSpace(student.Name)) return false;
+        var fileInfo = new FileInfo(filePath);
+        var needsHeader = !fileInfo.Exists || fileInfo.Length == 0;
 
-        if (string.IsNullOrWhiteSpace(student.Email)) return false;
+        EnsureFileEndsWithNewLine(filePath);
 
-        if (student.Result == null) return false;
+        var config = new CsvConfiguration(CultureInfo.InvariantCulture)
+        {
+            HasHeaderRecord = false,
+            NewLine = Environment.NewLine
+        };
 
-        if (student.Result.Physics < 0 || student.Result.Physics > 100) return false;
+        using var stream = new FileStream(filePath, FileMode.Append, FileAccess.Write, FileShare.Read);
+        using var writer = new StreamWriter(stream);
+        using var csv = new CsvWriter(writer, config);
+        csv.Context.RegisterClassMap<StudentCsvMap>();
 
-        if (student.Result.Chemistry < 0 || student.Result.Chemistry > 100) return false;
+        if (needsHeader)
+        {
+            csv.WriteHeader<StudentCsvDto>();
+            csv.NextRecord();
+        }
 
-        if (student.Result.Biology < 0 || student.Result.Biology > 100) return false;
+        var dto = MapToDto(student);
+        csv.WriteRecord(dto);
+        csv.NextRecord();
 
-        return true;
+        writer.Flush();
+        stream.Flush();
     }
 
-    public void DisplayStudent(Student student)
+    private void EnsureFileEndsWithNewLine(string filePath)
     {
-        if (!IsValidStudent(student))
-        {
-            Console.WriteLine($"\n[Invalid Student Data: {student?.Name ?? "Unknown"}]");
+        if (!File.Exists(filePath))
             return;
-        }
 
-        Console.WriteLine($"\n{new string('=', 50)}");
-        Console.WriteLine($"Name:       {student.Name}");
-        Console.WriteLine($"Email:      {student.Email}");
-        Console.WriteLine($"Contact:    {student.ContactNumber}");
-        Console.WriteLine($"{new string('-', 50)}");
-        Console.WriteLine($"Physics:    {student.Result.Physics}");
-        Console.WriteLine($"Chemistry:  {student.Result.Chemistry}");
-        Console.WriteLine($"Biology:    {student.Result.Biology}");
-        Console.WriteLine($"Average:    {student.Result.GetAverage():F2}");
-        Console.WriteLine($"Result:     {student.Result.GetPassOrFail()}");
-        Console.WriteLine($"{new string('=', 50)}");
+        var fileInfo = new FileInfo(filePath);
+        if (fileInfo.Length == 0)
+            return;
+
+        using var stream = new FileStream(filePath, FileMode.Open, FileAccess.ReadWrite, FileShare.Read);
+        if (stream.Length > 0)
+        {
+            stream.Seek(-1, SeekOrigin.End);
+            var lastByte = stream.ReadByte();
+
+            if (lastByte != '\n' && lastByte != '\r')
+            {
+                stream.Seek(0, SeekOrigin.End);
+                var newLineBytes = System.Text.Encoding.UTF8.GetBytes(Environment.NewLine);
+                stream.Write(newLineBytes, 0, newLineBytes.Length);
+            }
+        }
     }
 
-    public void DisplayAllStudents(List<Student> students)
-    {
-        Console.WriteLine("\n*** STUDENT MANAGEMENT SYSTEM ***\n");
 
-        foreach (var student in students)
+    private void EnsureDirectoryExists(string filePath)
+    {
+        var directory = Path.GetDirectoryName(filePath);
+        if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
         {
-            DisplayStudent(student);
+            Directory.CreateDirectory(directory);
         }
+    }
+
+    private Student MapToStudent(StudentCsvDto dto)
+    {
+        return new Student
+        {
+            Name = dto.Name,
+            Email = dto.Email,
+            ContactNumber = dto.ContactNumber,
+            Result = new Result
+            {
+                Physics = dto.Physics,
+                Chemistry = dto.Chemistry,
+                Biology = dto.Biology
+            }
+        };
+    }
+
+    private StudentCsvDto MapToDto(Student student)
+    {
+        return new StudentCsvDto
+        {
+            Name = student.Name,
+            Email = student.Email,
+            ContactNumber = student.ContactNumber,
+            Physics = student.Result.Physics,
+            Chemistry = student.Result.Chemistry,
+            Biology = student.Result.Biology
+        };
     }
 }

@@ -1,14 +1,8 @@
-﻿const string JsonFilePath = "Data/students.json";
+﻿
+var csvFilePath = FilePathHelper.GetCsvFilePath();
 
-try
-{
-    var studentService = new StudentService();
+IStudentService studentService = new StudentService();
 
-    var students = studentService.LoadFromJson(JsonFilePath);
+var consoleUI = new ConsoleUI(studentService, csvFilePath);
 
-    studentService.DisplayAllStudents(students);
-}
-catch (Exception ex)
-{
-    Console.WriteLine($"\n[ERROR] {ex.Message}");
-}
+consoleUI.Run();
