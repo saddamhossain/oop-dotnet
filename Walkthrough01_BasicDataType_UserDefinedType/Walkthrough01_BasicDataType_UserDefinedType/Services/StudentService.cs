@@ -98,7 +98,6 @@ public class StudentService : IStudentService
         }
     }
 
-
     private void EnsureDirectoryExists(string filePath)
     {
         var directory = Path.GetDirectoryName(filePath);

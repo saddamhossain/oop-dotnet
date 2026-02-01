@@ -77,8 +77,6 @@ public class ConsoleUI
 
             var fullPath = Path.GetFullPath(_csvFilePath);
             Console.WriteLine($"\n[SUCCESS] Student '{name}' added successfully!");
-            Console.WriteLine($"[INFO] Data saved to: {fullPath}");
-            Console.WriteLine($"[INFO] File size: {new FileInfo(fullPath).Length} bytes");
         }
 
         catch (Exception ex)
