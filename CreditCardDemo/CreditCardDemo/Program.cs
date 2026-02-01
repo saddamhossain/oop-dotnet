@@ -1,6 +1,6 @@
-﻿CreditCard card = new CreditCard("1234-5678-9876-5432", new DateTime(2026, 12, 31));
+﻿CreditCard card = new CreditCard("1234-5678-9876-5432", new DateTime(2026, 03, 01));
 
-Customer customer = new Customer("Md. Saddam Hossain", 25, card);
+Customer customer = new Customer("Md. Saddam Hossain", 35, card);
 
 if (customer.IsEligibleForCreditCard())
 {
@@ -12,7 +12,7 @@ if (customer.IsEligibleForCreditCard())
 
         try
         {
-            card.MakeCashWithdrawal(40000);
+            card.MakeCashWithdrawal(60000);
             Console.WriteLine($"Cash withdrawal successful. Available credit: {card.AvailableCredit}");
         }
         catch (InvalidOperationException ex)
@@ -44,10 +44,10 @@ if (customer.IsEligibleForCreditCard())
     {
         Console.WriteLine("Credit card is expired.");
     }
+
+    Console.WriteLine($"Outstanding balance: {card.GetOutstandingBalance()}");
 }
 else
 {
     Console.WriteLine($"{customer.Name} is not eligible for a credit card.");
 }
-
-Console.WriteLine($"Outstanding balance: {card.GetOutstandingBalance()}");
