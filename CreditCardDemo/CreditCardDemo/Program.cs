@@ -1,4 +1,4 @@
-﻿CreditCard card = new CreditCard("1234-5678-9876-5432", new DateTime(2026, 03, 01));
+﻿CreditCard card = new CreditCard("1234-5678-9876-5432", new DateTime(2026, 03, 01), true);
 
 Customer customer = new Customer("Md. Saddam Hossain", 35, card);
 
@@ -12,7 +12,7 @@ if (customer.IsEligibleForCreditCard())
 
         try
         {
-            card.MakeCashWithdrawal(60000);
+            card.MakeCashWithdrawal(50000);
             Console.WriteLine($"Cash withdrawal successful. Available credit: {card.AvailableCredit}");
         }
         catch (InvalidOperationException ex)
@@ -32,7 +32,7 @@ if (customer.IsEligibleForCreditCard())
 
         try
         {
-            card.MakeRepayment(50000);
+            card.MakeRepayment(400000);
             Console.WriteLine($"Repayment successful. Available credit: {card.AvailableCredit}");
         }
         catch (InvalidOperationException ex)

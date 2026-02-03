@@ -9,13 +9,15 @@ public class CreditCard
     public DateTime ExpirationDate { get; set; }
     public double CreditLimit { get; private set; }
     public double AvailableCredit { get; private set; }
+    public bool AllowsOverpayment { get; set; }
 
-    public CreditCard(string cardNumber, DateTime expirationDate)
+    public CreditCard(string cardNumber, DateTime expirationDate, bool allowsOverpayment = false)
     {
         CardNumber = cardNumber;
         ExpirationDate = expirationDate;
         CreditLimit = MaxCreditLimit;
         AvailableCredit = MaxCreditLimit;
+        AllowsOverpayment = allowsOverpayment;
     }
 
     public bool IsCardValid()
@@ -47,10 +49,16 @@ public class CreditCard
         if (amount <= 0)
             throw new InvalidOperationException("Repayment amount must be positive.");
 
-        if (AvailableCredit + amount > CreditLimit)
-            AvailableCredit = CreditLimit;
+        double newAvailableCredit = AvailableCredit + amount;
+
+        if (AllowsOverpayment)
+        {
+            AvailableCredit = newAvailableCredit;
+        }
         else
-            AvailableCredit += amount;
+        {
+            AvailableCredit = Math.Min(newAvailableCredit, CreditLimit);
+        }
     }
 
     public double GetOutstandingBalance()
