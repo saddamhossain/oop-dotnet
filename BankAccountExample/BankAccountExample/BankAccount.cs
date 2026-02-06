@@ -2,7 +2,18 @@
 
 public class BankAccount
 {
-    public string AccountNumber { get; set; }
+    public string AccountNumber 
+    { 
+        get; 
+        set
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                throw new ArgumentException("Account number cannot be empty.");
+            }
+            field = value;
+        }
+    }
     public string AccountHolderName { get; set; }
     public double Balance { get; private set; }
 
